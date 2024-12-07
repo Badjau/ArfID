@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../../Arduino/build/data"
+		},
+		{
+			"path": "../../../../Arduino/Firebase-Project"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"string": "cpp",
+			"ostream": "cpp"
+		},
+		"liveServer.settings.multiRootWorkspaceName": "Firebase-Project"
+	}
+}
