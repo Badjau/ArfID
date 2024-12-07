@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ArfID</title>
+
+    <script>
+        var totalConsumedFood1 = 0;
+        var totalDispensedFood1 = 0;
+        var pet1Food1 = 0;
+        var pet1Food2 = 0;
+    
+        var totalConsumedFood2 = 0;
+        var totalDispensedFood2 = 0;
+        var pet2Food1 = 0;
+        var pet2Food2 = 0;
+        
+        var time = "";
+    
+        function updateFoodLevels1() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/scale1', true);
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    // Parse the weight from ESP32 response
+                    var weight = parseFloat(xhr.responseText);
+
+                    // Update progress bar value (scale 0-100 based on grams)
+                    var maxWeight = 3000; // Adjust this to your actual maximum weight in grams
+                    var progressElement = document.getElementById('food-level-1');
+                    progressElement.value = weight / maxWeight * 100;
+                    
+                    // Update weight display with value and units
+                    var weightDisplay;
+                    if (weight == 0) {
+                      weightDisplay = "0g / 1.5kg";
+                    } else if (weight < 0) {
+                      weightDisplay = "0g / 1.5kg";
+                    } else if (weight < 1000) {
+                      // Less than 1 kg, display in grams without decimals
+                      weightDisplay = Math.round(weight) + "g / 1.5kg";
+                    } else {
+                      // 1 kg or more, display in kilograms with one decimal place
+                      weightDisplay = (weight / 1000).toFixed(1) + "kg / 1.5kg";
+                    }
+
+                    document.querySelector('.progress-value1').textContent = weightDisplay;
+                    console.log('updateFoodLevels1: ', weightDisplay);
+                } else {
+                  console.error('Error fetching scale1:', xhr.status);
+                }
+              }
+            };
+            xhr.send();
+        } 
+        // Call updateFoodLevels1 every n seconds
+        setInterval(updateFoodLevels1, 10000);
+    
+    function updateFoodLevels2() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/scale2', true);
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    // Parse the weight from ESP32 response
+                    var weight = parseFloat(xhr.responseText);
+
+                    // Update progress bar value (scale 0-100 based on grams)
+                    var maxWeight = 3000; // Adjust this to your actual maximum weight in grams
+                    var progressElement = document.getElementById('food-level-2');
+                    progressElement.value = weight / maxWeight * 100;
+                    
+                    // Update weight display with value and units
+                    var weightDisplay;
+                    if (weight == 0) {
+                      weightDisplay = "0g / 3kg";
+                    } else if (weight < 0) {
+                      weightDisplay = "0g / 3kg";
+                    } else if (weight < 1000) {
+                      // Less than 1 kg, display in grams without decimals
+                      weightDisplay = Math.round(weight) + "g / 3kg";
+                    } else {
+                      // 1 kg or more, display in kilograms with one decimal place
+                      weightDisplay = (weight / 1000).toFixed(1) + "kg / 3kg";
+                    }
+
+                    document.querySelector('.progress-value2').textContent = weightDisplay;
+          console.log('updateFoodLevels2: ', weightDisplay);
+                } else {
+                  console.error('Error fetching scale1:', xhr.status);
+                }
+              }
+            };
+            xhr.send();
+        } 
+        // Call updateFoodLevels2 every n seconds
+        setInterval(updateFoodLevels2, 10000);
+    
+    
+    function getTime() {
+      var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/time', true);
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    time = (xhr.responseText);
+                } else {
+                  console.error('Error fetching time:', xhr.status);
+                }
+              }
+            };
+            xhr.send();
+    }
+            
+        // Function to handle the data received from the ESP32
+        function handleRegisteredTags(registeredTagUIDs) {
+          const pet1Container = document.getElementById('pet1-container');
+          const pet2Container = document.getElementById('pet2-container');
+          const pet1Span = document.getElementById('pet1');
+          const pet2Span = document.getElementById('pet2');
+          const registerButton = document.getElementById('register-button-container');
+          const registerPetSpan = document.getElementById('register-pet-span');
+
+          // Hide 'pet1-container' if registeredTagUIDs is null
+          if (!registeredTagUIDs || registeredTagUIDs.length === 0) {
+            pet1Container.style.display = 'none';
+            pet2Container.style.display = 'none';        
+            return;
+          }
+
+          // Show the value of the first entry on 'pet1'
+          pet1Span.textContent = registeredTagUIDs[0];
+          pet1Container.style.display = 'block';
+
+          // Hide 'pet2-container' and 'register-pet-span' if registeredTagUIDs has only one entry
+          if (registeredTagUIDs.length === 1) {
+            registerPetSpan.innerText = "Register another pet";
+          } else {
+            // Show the value of the second entry on 'pet2', hide register UI
+            pet2Span.textContent = registeredTagUIDs[1];
+            pet2Container.style.display = 'block';
+            registerButton.style.visibility = 'none';
+            registerButton.disabled = true; // Disable the button
+            registerButton.style.opacity = '0';
+            registerPetSpan.style.visibility = 'none';
+            registerPetSpan.style.opacity = '0';
+          }
+        }
+    
+        // Function to fetch registered tags from the ESP32
+        function fetchRegisteredTags() {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/registered-tags', true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+              let registeredTagUIDs = [];
+              if (xhr.responseText.trim() !== '') {
+                registeredTagUIDs = xhr.responseText.split(',');
+                  
+              }
+              handleRegisteredTags(registeredTagUIDs);
+            }
+          };
+          xhr.send();
+        }
+
+    function displaySchedules1(data) {
+      const scheduleContainer = document.getElementById('scheduleContainer1');
+      scheduleContainer.innerHTML = ''; // Clear existing content
+      
+      // Reset the total food counters
+      let totalConsumedFood1 = 0;
+      let totalDispensedFood1 = 0;
+      
+      // Check if data and feedingHistory exist and are valid
+      if (!data || !Array.isArray(data.feedingHistory)) {
+          console.error('Invalid data structure:', data);
+          scheduleContainer.innerHTML = '<p>Error: Invalid data received</p>';
+          return;
+      }
+      
+      const feedingHistory = data.feedingHistory;
+      
+      feedingHistory.forEach(entry => {
+        if (typeof entry.consumedAmount === 'number' && typeof entry.dispensedAmount === 'number') {
+            totalConsumedFood1 += entry.consumedAmount;
+            totalDispensedFood1 += entry.dispensedAmount;
+        }
+        
+        const flexContainer = document.createElement('div');
+        flexContainer.classList.add('flex-container');
+        flexContainer.style.cssText = 'margin-bottom: calc((2vh + 2vw)/2); display: flex; width: 100%;';
+        
+        const timestamp = new Date(entry.timestamp);
+        if (isNaN(timestamp)) {
+            console.error('Invalid timestamp:', entry.timestamp);
+            return; // Skip this entry
+        }
+        
+        const timeString = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const [time, period] = timeString.split(' ');
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.classList.add('center-span');
+        timeSpan.innerHTML = `${time}<span style="font-size: 0.5rem;">${period}</span>`;
+        
+        const dispensedSpan = document.createElement('span');
+        dispensedSpan.classList.add('center-span');
+        dispensedSpan.innerHTML = `${entry.dispensedAmount}<span style="font-size: 0.5rem;">grams</span>`;
+        
+        const consumedSpan = document.createElement('span');
+        consumedSpan.classList.add('center-span');
+        consumedSpan.innerHTML = `${entry.consumedAmount}<span style="font-size: 0.5rem;">grams</span>`;
+        
+        flexContainer.appendChild(timeSpan);
+        flexContainer.appendChild(dispensedSpan);
+        flexContainer.appendChild(consumedSpan);
+        scheduleContainer.appendChild(flexContainer);
+      });
+          
+        console.log('Total consumed:', totalConsumedFood1);
+        console.log('Total dispensed:', totalDispensedFood1);
+    }    
+
+    function fetchAndDisplaySchedules() {
+      fetch('/pet-data1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received data:', data); // Log the received data for debugging
+            displaySchedules1(data);
+        })
+        .catch(error => {
+            console.error('Error in data fetching:', error);
+            const scheduleContainer = document.getElementById('scheduleContainer1');
+            scheduleContainer.innerHTML = '<p>Error: Failed to fetch data</p>';
+        });
+    }
+        
+    // Consolidate onload functions
+    window.onload = function() {
+      updateFoodLevels1();
+      updateFoodLevels2();
+      getTime();
+      fetchRegisteredTags();
+      fetchAndDisplaySchedules();
+    };
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <div class="main-div">
+        <div class="sub-div left-div">
+            <img src="LOGO-bordered.png" alt="Logo" style="width: calc((6vh + 6vw)/2); height: auto;">   
+            <span style="font-size: calc(100% + 0.5vh); font-weight: 900;">ArfID</span>
+        </div>
+        <div class="sub-div middle-div">
+            <span style="font-size: calc(100% + 1.5vh);font-weight: 600; margin-right: 6vw">Main Menu</span>
+        </div>
+        <div class="sub-div right-div">
+            <img class="clickable" src="gear.png" alt="Gear" style="width: calc(5vh + 1rem); height: auto;" onclick="window.location.href='/settings'"> 
+        </div>
+    </div>
+
+    <div class="main-container">
+      <div class="divider">
+        <div style="margin-bottom: 5%; text-align: center">
+            <label style="margin-top: 2%; margin-bottom: 1%; font-weight: bold">Food Levels</label>
+            <div class="progress-container">
+                  <label class="progress-label">Food 1</label>
+                  <progress id="food-level-1" class="bar" value="0" max="100"></progress>
+                  <span class="progress-value1">0.0/1.5kg</span>
+            </div>
+            <div class="progress-container" style="margin-top: 2%;">
+                  <label class="progress-label">Food 2</label>
+                  <progress id="food-level-2" class="bar" value="0" max="100"></progress>
+                  <span class="progress-value2">0.0/1.5kg</span>
+            </div>
+        </div>
+      </div>
+      
+      <div class="divider" style="height: 60vh; width: auto;">
+        <div style="margin-top: 2% ;margin-bottom: 2%; font-weight: bold;font-size:  calc((4vh + 4vw)/2); text-align: center">
+          <label> Feeding Statistics</label>
+        </div>
+        <div style="margin: 0.15em; display: flex;">
+          <div hidden id="pet1-container" style="margin-right: 0.20em; border: 2px solid #bfbfbf; border-radius: 1em;  width: 100%; background-color: aliceblue">
+            <img src="dog-face.png" alt="Logo" style="width: calc((12vh + 12vw)/2); margin-top: calc((1vh + 1vw)/2);" class="center-span">  
+            <span id="pet1" class="center-span" style="font-weight: bold; font-size:  calc((3vh + 3vw)/2); margin-top: calc((1vh + 1vw)/2); margin-bottom: calc((1vh + 1vw)/2);"></span>
+            <div class="flex-child" style=" display: table; margin: 0 auto; width: calc(45vw); background-color: white;">
+              <div>
+                <span class="center-span" style="font-weight: bold; margin-top: calc((0.5vh + 0.5vw)/2);">Daily Goal</span>
+                <div style="display: flex; margin-top: calc((1vh + 1vw)/2);">
+                    <span class="center-span" style="font-weight: bold; font-size:  calc((2vh + 2vw)/2)">Calories</span>
+                    <span class="center-span" style="font-weight: bold; font-size:  calc((2vh + 2vw)/2)">Grams</span>
+                </div>   
+                <div id="calorieData1" style="display: flex; margin-bottom: calc((1vh + 1vw)/2)">
+                    <span id="calorieSpan1" class="center-span" style="font-weight: normal; font-size:  calc((1.9vh + 1.9vw)/2)"></span>
+                    <span id="gramsSpan1" class="center-span" style="font-weight: normal; font-size:  calc((1.9vh + 1.9vw)/2)"></span>
+                </div>
+              </div>
+                  <span class="center-span" style="font-weight: bold"></span>
+              </div>
+              <div class="flex-container" style="margin-top: calc((2vh + 2vw)/2); font-size: calc((1.5vh + 1.5vw)/2)">
+                <span class="center-span" style="font-weight: bold"> Time</span>
+                <span class="center-span" style="font-weight: bold">Dispensed</span>
+                <span class="center-span" style="font-weight: bold"> Consumed</span>
+              </div>
+              <div id="scheduleContainer1" class="flex-child" style="margin: calc((0.8vh + 0.8vw)/2); margin-bottom: calc((2vh + 2vw)/2); font-size: calc((2vh + 1.5vw)/2); background: #f8f8f8; text-align: center">
+                <div class="flex-container" style="margin-bottom: calc((2vh + 2vw)/2); display: flex; width: 100%">
+                </div>
+              </div>
+            </div>
+            <div hidden id="pet2-container" style="margin-right: 0.20em; border: 2px solid #bfbfbf; border-radius: 1em; width: 100%; background-color: aliceblue">
+              <img src="dog-face.png" alt="Logo" style="width: calc((12vh + 12vw)/2); margin-top: calc((1vh + 1vw)/2);" class="center-span">  
+              <span id="pet2" class="center-span" style="font-weight: bold; font-size:  calc((3vh + 3vw)/2); margin-top: calc((1vh + 1vw)/2); margin-bottom: calc((1vh + 1vw)/2);"></span>
+              <div id="calorieData2" class="flex-child" style=" display: table; margin: 0 auto; width: calc(45vw); background-color: white">
+                  <div>
+                    <span class="center-span" style="font-weight: bold; margin-top: calc((0.5vh + 0.5vw)/2);">Daily Goal</span>
+                    <div style="display: flex; margin-top: calc((1vh + 1vw)/2);">
+                      <span class="center-span" style="font-weight: bold; font-size:  calc((2vh + 2vw)/2)">Calories</span>
+                      <span class="center-span" style="font-weight: bold; font-size:  calc((2vh + 2vw)/2)">Grams</span>
+                    </div>   
+                    <div style="display: flex; margin-bottom: calc((1vh + 1vw)/2)">
+                      <span id="calorieSpan2" class="center-span" style="font-weight: normal; font-size:  calc((1.9vh + 1.9vw)/2)"></span>
+                      <span id="gramsSpan2" class="center-span" style="font-weight: normal; font-size:  calc((1.9vh + 1.9vw)/2)"></span>
+                    </div>
+                  </div>
+                <span class="center-span" style="font-weight: bold"></span>
+              </div>
+              <div class="flex-container" style="margin-top: calc((2vh + 2vw)/2); font-size: calc((1.5vh + 1.5vw)/2)">
+                <span class="center-span" style="font-weight: bold">Time</span>
+                <span class="center-span" style="font-weight: bold">Dispensed</span>
+                <span class="center-span" style="font-weight: bold">Consumed</span>
+              </div>
+              <div id="scheduleContainer2" class="flex-child" style="margin: calc((0.8vh + 0.8vw)/2); margin-bottom: calc((2vh + 2vw)/2); font-size: calc((2vh + 1.5vw)/2); background: #f8f8f8; text-align: center">
+                <div class="flex-container" style="margin-bottom: calc((2vh + 2vw)/2); display: flex; width: 100%">
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="container" style="margin-top: calc((0.5vw + 0.5vh)/2); margin-bottom: 2%;">
+            <span id="register-pet-span" style="text-align: center; color: #adadad;"> Register a pet first </span>
+        </div>
+        <div id="register-button-container" class="container" style="margin-bottom: 5vh;">
+            <button class="circle-button" style="height: 5em; width: 5em; margin-top: 5vh; margin-bottom: 5vh;" id="registerButton" type="button" onclick="window.location.href='/register-tag';"><span style="font-size: 1em;">+</span></button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon"  type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>Register Pet | ArfID</title>
+    
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyCz0SPuJSMcXI61DSimf5O8T7rJnEvM0bA",
+          authDomain: "arfid-portal.firebaseapp.com",
+          databaseURL: "https://arfid-portal-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "arfid-portal",
+          storageBucket: "arfid-portal.appspot.com",
+          messagingSenderId: "548111435395",
+          appId: "1:548111435395:web:d2540911672c54715fbdb6"
+        };
+  
+        // Initialize firebase
+        firebase.initializeApp(firebaseConfig);
+  
+        // Make auth and database references
+        const auth = firebase.auth();
+        const db = firebase.database();
+  
+    </script>
+
+    <script>
+        let foodAmountCurrent = 0; // Initialize with a default value to be used by submitForm for saving, taken from updateTable()
+        // Function to extract tagUID from URL query parameter
+        function getTagUIDFromURL() {
+          // Get the query parameters from the URL
+          var queryString = window.location.search;
+
+          // Parse the query string to extract the tagUID parameter
+          var urlParams = new URLSearchParams(queryString);
+          return urlParams.get('tagUID');
+        }
+
+        // Function to initialize the page
+        function init() {
+          // Get the tagUID from the URL
+          var tagUID = getTagUIDFromURL();
+
+          // Display the tagUID on the page
+          document.getElementById('tagUID').innerText = tagUID;
+        }
+        // Call the init function when the page loads
+        window.onload = function() {
+            init();
+            
+            // Add event listener to the input element to call updateTable on input
+            document.getElementById('weightInput').addEventListener('input', updateTable);
+            document.getElementById('neuteredCheckbox').addEventListener('input', updateTable);
+            document.getElementById('calories').addEventListener('input', updateTable);
+            
+            var slider = document.getElementById("slider");
+            slider.addEventListener("input", showHideWarning);
+            slider.addEventListener("input", updateTable);
+        };
+        
+        function toggleInputs() {
+            var checkboxFeedingPlan = document.getElementById('feedingPlanCheckbox');
+            var alternateFoodCheckbox = document.getElementById('alternateFoodCheckbox');
+            var alternateFoodCheckboxDiv = document.getElementById('alternateFoodCheckboxDiv');
+            var inputs = document.querySelector('.toggleInput');
+            var feedingPlan = document.querySelectorAll('food-plan');
+            var foodPlanInputs = document.getElementById('feeding-plan');
+            var foodPlanTable = document.getElementById('foodPlanTable');
+            var food2Div = document.getElementById('food2-input');
+            var food1Input = document.getElementById('food1');
+            var food2Input = document.getElementById('food2');
+            var formula = document.getElementById('formula');
+            var inputElements = document.querySelectorAll('input[type="text"], input[type="number"], input[type="range"]');
+            
+            // Toggle neutered and feeding plan sections
+            neuteredCheckboxDiv.style.display = checkboxFeedingPlan.checked ? 'block' : 'none';
+            inputs.style.display = checkboxFeedingPlan.checked ? 'none' : 'block';
+            
+            // Handle food2 visibility based on alternateFoodCheckbox and feedingPlanCheckbox
+            if (alternateFoodCheckbox.checked) {
+                food2Div.style.display = 'block';
+                food1Input.removeAttribute('required');
+            } else if (checkboxFeedingPlan.checked) {
+                food2Input.removeAttribute('required');
+                foodPlanInputs.style.display = 'block';
+                foodPlanTable.style.display = 'inline-block';
+                formula.style.display = 'block';
+                alternateFoodCheckboxDiv.style.display = 'none'
+                food2Div.style.display = 'none';
+            } else {
+                alternateFoodCheckboxDiv.style.display = 'block'
+                foodPlanInputs.style.display = 'none';
+                foodPlanTable.style.display = 'none';
+                formula.style.display = 'none';
+                food1Input.setAttribute('required', true);
+                food2Div.style.display = 'none';
+            }
+
+            // Dynamically update the 'required' attribute based on visibility
+            inputElements.forEach(function(input) {
+                if (input.style.display === 'block' || input.closest('div').style.display === 'block') {
+                    input.setAttribute('required', true); // Add required if visible
+                } else {
+                    input.removeAttribute('required'); // Remove required if hidden
+                }
+            });
+        }
+   
+        function caloriesAlert()   {
+          var checkbox = document.getElementById('feedingPlanCheckbox');
+            alert("The metric system provides accurate measurements by weight (grams), while volume measurements (cups) are inconsistent due to varying food densities across dog foods.\nTo calculate calories, use the calorie count per 100g. For example, if a food has 350 calories per 100g (3.5 calories per gram), a pet consuming 200g would consume 700 calories.");
+        }
+
+        function formulaAlert() {
+            alert("The pet nutrition calculator employs a series of formulas to determine optimal feeding recommendations for pets. Using the pet's weight, it starts by calculating the Resting Energy Requirement (RER) then derives the Maintenance Energy Requirement (MER) by factoring in whether the pet is neutered or not. The calculations are dynamically adjusted using the pet's body condition score (BCS). This adjustment affects both the ideal weight calculation and the calorie intake recommendation. The system uses the adjusted MER and the calorie content of the pet food to determine the recommended daily feeding amount in grams. This comprehensive approach ensures that feeding recommendations are tailored to each pet's individual needs, considering factors such as weight, neutering status, and overall body condition.");
+        }
+
+        function showHideWarning() {
+            var slider = document.getElementById("slider");
+            var weightEvalSpan = document.getElementById("weightEval");
+            var weightEvalDiv = document.getElementById("weightEvalDiv");
+            var bcsWarningDiv = document.getElementById("bcsWarningDiv");
+            var sliderValue = parseFloat(slider.value);
+            var button = document.getElementById("submitButton");
+
+            if (sliderValue == 5) {
+                bcsWarningDiv.style.visibility = "collapse";
+                weightEvalDiv.style.display = "block";
+                weightEvalDiv.style.visibility = "visible";
+                weightEvalSpan.textContent="Pet is at its ideal weight";
+            } else if (sliderValue == 4.5 ) {
+                bcsWarningDiv.style.visibility = "collapse";
+                weightEvalDiv.style.display = "block";
+                weightEvalDiv.style.visibility = "visible";
+                weightEvalSpan.textContent="5% Under ideal weight";
+            } else if (sliderValue == 5.5 ) {
+                bcsWarningDiv.style.visibility = "collapse";
+                weightEvalDiv.style.display = "block";
+                weightEvalDiv.style.visibility = "visible";
+                weightEvalSpan.textContent="5% Over ideal weight";                
+            } else if (sliderValue <= 4 || sliderValue >= 7 ) {
+                bcsWarningDiv.style.display = "block";
+                bcsWarningDiv.style.visibility = "visible";
+                weightEvalDiv.style.visibility = "collapse";
+            } else if (sliderValue == 6) {
+                weightEvalDiv.style.display = "block";
+                weightEvalDiv.style.visibility = "visible";
+                weightEvalSpan.textContent="10% Over ideal weight";
+            } else if (sliderValue == 6.5) {
+                bcsWarningDiv.style.visibility = "collapse";
+                weightEvalDiv.style.display = "block";
+                weightEvalDiv.style.visibility = "visible";
+                weightEvalSpan.textContent="15% Over ideal weight";
+            } else {
+                bcsWarningDiv.style.visibility = "collapse";
+                weightEvalDiv.style.visibility = "collapse";
+            }
+
+            // Check if the bcsWarningDiv's display style is not "none"
+            if (bcsWarningDiv.style.visibility === "collapse") {
+                button.disabled = false; // Disable the button
+                button.style.backgroundColor = "#1DB27B" ;
+            } else {
+                button.disabled = true; // Enable the button
+                button.style.backgroundColor = "#e24d4d";
+            }
+        }
+
+        function updateTable() {
+            const calories = document.getElementById('calories').value
+            const weightCurrent = document.getElementById('weightCurrent');
+            const weightIdeal = document.getElementById('weightIdeal');
+            const weightInput = document.getElementById('weightInput').value;
+            const caloriesCurrent = document.getElementById('caloriesCurrent');
+            const caloriesIdeal = document.getElementById('caloriesIdeal');
+            const slider = document.getElementById('slider');
+            const neuteredCheckbox = document.getElementById('neuteredCheckbox');
+            const sliderValue = parseFloat(slider.value);
+            const weight = Number(weightInput);
+            const suggestedFeeding = document.getElementById('suggestedFeeding');
+
+            const RER = 70 * Math.pow(weight, 0.75);
+			console.log('RER: ', RER);
+            let MER = neuteredCheckbox.checked ? RER * 1.6 : RER * 1.8;
+
+            weightCurrent.textContent = `${weight.toFixed(2)} kg`;
+
+            if (sliderValue === 5 && weightInput.length !== 0) {
+                weightIdeal.textContent = `${weight.toFixed(2)} kg`;
+            } else if (sliderValue === 5.5 && weightInput.length !== 0) {
+                weightIdeal.textContent = `${(weight * 0.95).toFixed(2)} kg`;
+            } else if (sliderValue === 6 && weightInput.length !== 0) {
+                weightIdeal.textContent = `${(weight * 0.9).toFixed(2)} kg`;
+            } else if (sliderValue === 6.5 && weightInput.length !== 0) {
+                weightIdeal.textContent = `${(weight * 0.85).toFixed(2)} kg`;
+            } else if (sliderValue === 4.5 && weightInput.length !== 0) {
+                weightIdeal.textContent = `${(weight * 1.15).toFixed(2)} kg`;
+            } else {
+                weightCurrent.textContent = '---';
+                weightIdeal.textContent = '---';
+                suggestedFeeding.textContent = '---';
+                caloriesCurrent.textContent = '---';
+                caloriesIdeal.textContent = '---';
+            }
+
+            if (calories && weightInput.length !== 0) {
+
+                let weightIdealValue = weight;
+                if (sliderValue === 4.5) {
+                    weightIdealValue = weight * 1.15;
+                    MER *= 1.05;
+                } else if (sliderValue === 5.5) {
+                    weightIdealValue = weight * 0.95;
+                    MER *= 0.95;
+                } else if (sliderValue === 6) {
+                    weightIdealValue = weight * 0.9;
+                    MER *= 0.9;
+                } else if (sliderValue === 6.5) {
+                    weightIdealValue = weight * 0.85;
+                    MER *= 0.85;
+                }
+				
+				const currentCalories = (MER * calories) / 100; //WRONG FORMULA
+				console.log('currentCalories', currentCalories);
+                foodAmountCurrent = (MER / calories) * 100;
+				
+                suggestedFeeding.textContent = `${foodAmountCurrent.toFixed(0)} grams of food per day`;
+				
+				const RERCurrent = 70 * Math.pow(weight, 0.75);
+				const MERCurrent = neuteredCheckbox.checked ? RERCurrent * 1.6 : RERCurrent * 1.8;
+				caloriesCurrent.textContent = `${MERCurrent.toFixed(0)} kcal`;
+				
+                caloriesIdeal.textContent = `${MER.toFixed(0)} kcal`;
+            }
+        }
+
+        function submitForm() {
+            // Get form data
+            var tag = document.getElementById('tagUID').innerText;
+            var name = document.getElementById('name').value;
+            var food1 = document.getElementById('food1').value;
+            var food2 = document.getElementById('food2').value;
+
+            var weight = document.getElementById('weightInput').value;
+            var calories = document.getElementById('calories').value;
+            var slider = document.getElementById('slider').value;
+
+            var feedingPlanCheckbox = document.getElementById("feedingPlanCheckbox");
+            var alternateFoodCheckbox = document.getElementById('alternateFoodCheckbox');
+            foodAmountCurrent = foodAmountCurrent/2;
+
+            if ((food1 || food2 || foodAmountCurrent) > 150){
+                alert('Bowl can only hold up to 200 grams of food.');
+                return;
+            }
+            // Prepare data object for Firebase
+            let formData = {
+                tagUID: tag,
+                name: name,
+                food1: feedingPlanCheckbox.checked ? foodAmountCurrent : food1,
+                food2: alternateFoodCheckbox.checked ? food2 : '0',
+                calories: calories,
+                weight: weight,
+                slider: slider
+            };
+
+            // Save data to Firebase
+            set(ref(database, 'pets/' + tag), formData)
+                .then(() => {
+                    alert('Registered "' + name + '" to Tag: ' + tag + ".\nAs suggested by veterinarians, your pet will be fed twice daily, with approximately 10 hours between meals.");
+                    window.location.href = "/";
+                })
+                .catch((error) => {
+                    console.error('Error submitting form:', error);
+                    alert('Error submitting form. Please try again later.');
+                });
+            }
+    </script>
+</head>
+    <body>
+        <div class="main-div">
+            <div class="sub-div left-div clickable" onclick="window.location.href='/'">
+              <img src="LOGO-bordered.png" alt="Logo" style="width: calc((6vh + 6vw)/2); height: auto;">   
+              <span style="font-size: calc(100% + 0.5vh); font-weight: 900;">ArfID</span>
+            </div>
+            <div class="sub-div middle-div">
+              <span style="font-size: calc(100% + 1.5vh);font-weight: 600; margin-right: 9vw">Register Pet</span>
+            </div>
+            <div class="sub-div right-div">
+              <img class="clickable" src="gear.png" alt="Gear" style="width: calc(5vh + 1rem); height: auto;" onclick="window.location.href='/settings'"> 
+            </div>
+        </div>
+        <div class="main-container">
+            
+            <div class="container" style="display: flex; justify-content: center; align-items: center;">
+                <span style="text-align: center; font-size: calc((3vh + 3vw)/2);"><strong>Tag UID:</strong></span> 
+            </div>
+            <div class="container" style="display: flex; justify-content: center; align-items: center;">
+                <span id="tagUID" class="inputSpan" style="font-size: calc((2.5vh + 2.5vw)/2); color: #00beff; margin-bottom: calc((2vh + 2vw)/2);"><strong></strong></span> 
+            </div>
+
+            <div class="container" style="font-size: calc((2vh + 2vw)/2);">
+                <div style="margin-bottom: calc((2vh + 2vw)/2);">
+                    <span class="inputSpan"><strong>Name</strong></span> 
+                    <input id="name" type="text" placeholder="Enter Pet's Name"> 
+                    <input type="checkbox" id="feedingPlanCheckbox" onclick="toggleInputs()"> 
+                    <span style="margin-bottom: calc((1vh + 1vw)/2);"> Calculate a feeding plan</span>
+                </div>
+                <div class="toggleInput" id="food1-div">
+                    <span class="inputSpan"><strong>Daily Food Dispensing Amount</strong></span>
+                    <input class="toggleInput" id="food1" type="number" placeholder="grams">
+                </div>
+                <div id="food2-input" style="display: none">
+                    <span style="font-size: calc((2.85vh + 2.85vw)/2);"><strong>Daily Food 2 Dispensing Amount</strong></span>
+                    <input id="food2" type="number" placeholder="grams">
+                </div>
+                <div id="feeding-plan" style="display: none;">
+                    <div class="divider" style="margin-left: 7em; margin-right: 7em;">
+                        <div style="margin-bottom: 1em; margin-top: 1em;">
+                            <label><strong>Food to dispense</strong></label>
+                        </div>
+                        <div style="display:inline-flex; font-size: 1em; margin-bottom: 2em;">
+                            <input type="radio" id="food1Radio" name="fav_language" value="Food 1" checked>
+                            <label for="food1Radio">Food 1</label><br>
+                            <input type="radio" id="food2Radio" name="fav_language" value="Food 2">
+                            <label for="food2Radio">Food 2</label><br>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="inputSpan"><strong>Weight</strong></span> 
+                        <input id="weightInput" name="weight" type="number" placeholder="kg.">     
+                    </div>
+                    <div id="weightEvalDiv" class="flex-child" style="background-color: #f9ffa8; border-radius: 1em; margin-bottom: 3vw; height: 3vh; width: 100%; visibility: collapse;">
+                        <span id="weightEval"></span>
+                    </div>
+                    <span class="inputSpan"><strong>Food Calories per 100 grams</strong></span>
+                    <i class="fa fa-question-circle" id="question-circle" style="font-size:18px; color: #ffdf57" onclick=caloriesAlert()></i>
+                    <input id="calories" size="50%" type="number" placeholder="Check food's nutritional facts for more info">
+                    <span class="inputSpan"><strong>Body Condition Score</strong></span>
+                    <i class="fa fa-question-circle" id="question-circle" style="font-size:18px" onclick="window.open('https://vcahospitals.com/know-your-pet/body-condition-scores', '_blank');" title="Click for more information"></i>
+                    <img src="bcs.jpg" alt="Body Condition Score" style="width: 100%; height: 100%;">
+                    <form oninput="result.value = slider.value">
+                    <output name="result" for="slider"
+                    style="background-color:#777777; color:#ffffff; padding:8px 15px; border-radius:100px;">5</output> <br>
+                    <input id="slider" class="bcs-slider" type="range" min="1.0" max="9.0" value="5" step="0.5" oninput="result.value = slider.value"/> 
+                    </form>
+                </div>
+                <div id="bcsWarningDiv"  style="background-color: #f9ffa8; border: 0.2em solid; border-radius: 5em ; border-color: #ffdf57; margin-top: 3vw; margin-bottom: 3vw; visibility: collapse; align-content: center">
+                    <span style="margin: 0.3vw"> Scores outside the range of 4-7 range may require professional evaluation. <br> Consider consulting a veterinarian for guidance. </span>
+                </div>   
+                <div id="neuteredCheckboxDiv" style="display: none;">
+                    <input type="checkbox" id="neuteredCheckbox">
+                    <span id="neuteredSpan"> Is the pet spayed / neutered?</span><br>
+                </div>
+                <div id="foodPlanTable" style="display: none; background-color: #c5f0ff; display: none; font-size: calc((3vh + 3vw)/2); ">             
+                    <table border="1.5">
+                        <tr>
+                        <th>Daily Food Plan</th>
+                        <th>Current</th>
+                        <th>Ideal</th>
+                        </tr>
+                        <tr>
+                        <td>Weight</td>
+                        <td id="weightCurrent">---</td>
+                        <td id="weightIdeal"> --- </td>
+                        </tr>
+                        <tr>
+                        <td>Daily Calories</td>
+                        <td id="caloriesCurrent"> --- </td>
+                        <td id="caloriesIdeal"> --- </td>
+                        </tr>
+                        <tr>
+                        <td>Suggested Feeding</td>
+                        <td id="suggestedFeeding" colspan="2" style="text-align: center"> --- </td>
+                        </tr>
+                    </table>
+                </div> 
+                <div id="alternateFoodCheckboxDiv">
+                    <input type="checkbox" id="alternateFoodCheckbox" onclick="toggleInputs()">
+                    <span id="alternateFoodSpan"> Alternate foods</span><br>
+                </div> 
+                <div id="formula" style="text-decoration: underline; display: none; margin: 2em;">
+                    <span> How is this calculated?</span>
+                    <i class="fa fa-question-circle" id="question-circle" style="font-size:18px; color: #ffdf57" onclick=formulaAlert()></i>
+                </div>
+                <div>
+                    <button id="submitButton" type="submit" class="button" onclick="submitForm()" style="width: 75%; height: auto; margin-top: calc((5vh + 5vw)/2)">Register Pet</button> 
+                </div>
+            </div>  
+        </div>
+    </body>
+</html>

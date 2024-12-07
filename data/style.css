@@ -1,0 +1,248 @@
+html, body{
+    font-family: 'segoe ui';
+    margin:0;
+    padding: 0;
+    font-size:calc((2vh + 2vw)/2);
+ }
+
+ 
+.main-container {
+  width: 100%;
+  max-width: 1000px; /* Adjust this value as needed */
+  margin: 0 auto; /* Centers the container */
+}
+
+.main-div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: calc(9vh + .1rem);
+  background-color: #3ABDEA;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.sub-div {
+  display: flex;
+  align-items: center;
+}
+
+input[type=text], input[type=number], input[type=password]  {
+    width: 100%;
+    padding: 12px 20px;
+    margin-bottom: calc((3vw + 3vh)/2);
+    font-size: calc((2vw + 2vh)/2);
+    border: 1px solid #cccccc;
+    box-sizing: border-box;
+}
+
+
+button {
+    background-color: #04AA6D;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 20px; 
+    font-size:calc(60% + 1vw);
+}
+
+.circle-button {
+    background-color: #ffffff;
+    color: #3ABDEA;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 100%; 
+    font-size: calc(60% + 1vw);
+}
+
+
+button:hover {
+    opacity: 0.9;
+}
+
+.clickable:hover {
+    opacity: 0.5;
+}
+
+.bcs-slider {
+  -webkit-appearance: none;
+  width: 70%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.bcs-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.bcs-slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.container {
+    padding-left: 10%;
+    padding-right: 10%;
+    text-align: center;
+}
+
+.progress-container{
+    display: block;
+    height: auto;
+    width: auto;
+}
+
+
+.flex-container {
+    display: flex;
+}
+
+.flex-child {
+    align-items: center;
+    flex: 1;
+    border: 2px solid #bfbfbf;
+    border-radius: 1em;
+}  
+
+.flex-child:first-child {
+    margin-right: .5em;
+} 
+
+.center-span {
+    display: table; 
+    margin: 0 auto;
+}
+
+.divider {
+    display: block; 
+    margin-left: calc((1vh + 1vw)/2); 
+    margin-right: calc((1vh + 1vw)/2); 
+    margin-top: calc((1vh + 1vw)/2); 
+    margin-bottom: calc((1vh + 1vw)/2); 
+    border: 2px solid; 
+    border-color: #bfbfbf; 
+    background-color: #eee; 
+    border-radius: 2em;
+}
+
+.bar {
+  width: 60%;
+  height: 2rem;
+  text-align: center;
+  color: white;
+}
+
+
+.food-container {
+    width: 50%;
+    float: left;
+}
+
+.slider-container {
+    clear: both;
+    text-align: center;
+    overflow: hidden; 
+}
+
+
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1em;
+}
+
+.toggle-label {
+  flex-shrink: 0; /* Prevent labels from shrinking */
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3.75em;
+  height: 2.125em;
+  margin: 0 0.5em;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.625em;
+  width: 1.625em;
+  left: 0.25em;
+  bottom: 0.25em;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .toggle-slider {
+  background-color: #2196F3;
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .toggle-slider:before {
+  -webkit-transform: translateX(1.625em);
+  -ms-transform: translateX(1.625em);
+  transform: translateX(1.625em);
+}
+
+input,
+input::placeholder {
+    font-size: calc((1.5vw + 1.5vh)/2);
+}
+
+.toggle-slider.round {
+  border-radius: 2.125em;
+}
+
+.toggle-slider.round:before {
+  border-radius: 50%;
+}
+.inputSpan {
+    font-size: calc((3vw + 3vh)/2);
+}

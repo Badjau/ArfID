@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon"  type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>Welcome to ArfID</title>
+    
+    <script>
+		
+        window.onload = function() {
+			fetchLoginData();
+		}
+		
+		function updateHeader(firstTime) {
+		  var headerSpan = document.getElementById('headerSpan');
+		  var usernameSpan = document.getElementById('usernameSpan');
+		  var passwordSpan = document.getElementById('passwordSpan');
+		  var loginButton = document.getElementById('loginButton');
+		  var loginInput = document.getElementById('username');
+		  var passwordInput = document.getElementById('password');
+
+		  if (firstTime) {
+			headerSpan.textContent = "Register ArfID";
+			document.querySelector('#loginButton').textContent = 'Register';
+		  } else {
+			headerSpan.textContent = "Login ArfID";
+			usernameSpan.textContent = "Enter user ID";
+			passwordSpan.textContent = "Enter password";
+			document.querySelector('#loginButton').textContent = 'Login';
+		  	loginInput.placeholder = 'Enter registered ID';
+		  	passwordInput.placeholder = 'Enter your password';
+		  }
+		}
+
+		// Function to fetch login data from the ESP32
+		function fetchLoginData() {
+		  return new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', '/login-data', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+
+			xhr.onreadystatechange = function () {
+			  if (xhr.readyState === XMLHttpRequest.DONE) {
+				console.log('XHR request completed with status:', xhr.status);
+
+				if (xhr.status === 200) {
+				  try {
+					console.log('Response Text:', xhr.responseText);
+					const response = JSON.parse(xhr.responseText);
+
+					const isFirstTime = response.username === "" || response.password === "";
+					updateHeader(isFirstTime);
+					resolve(response);
+				  } catch (error) {
+					console.error('Error parsing JSON:', error);
+					reject(error);
+				  }
+				} else {
+				  console.error('Error fetching data:', xhr.status);
+				  reject('Error fetching data');
+				}
+			  }
+			};
+
+			xhr.send();
+		  });
+		}
+		
+		function login() {
+			// Get form data
+			var username = document.getElementById('username').value;
+			var password = document.getElementById('password').value;
+			var rememberUserCheckbox = document.getElementById("rememberUser");
+
+			// Check if any required field is blank
+			const isNameEmpty = username.trim() === '';
+			const isPasswordEmpty = password.trim() === '';
+
+			if (isNameEmpty || isPasswordEmpty) {
+				alert('Please fill in the required fields.');
+				return; // Exit function if any required field is blank
+			}
+
+			// Prepare form data, UNUSED.
+			var formData = new FormData();
+			formData.append('username', username);
+			formData.append('password', password);
+			formData.append('isLoggedIn', rememberUserCheckbox.checked);
+
+			// Make an asynchronous POST request to submit the form data
+			fetch('/login', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => {
+				if (response.ok) {
+					// Form submission was successful, redirect to the root URL
+					alert('Login Successful.');
+					window.location.href = "/";
+				} else {
+					// Handle errors
+					console.error('Form submission failed:', response.status);
+					alert('Invalid login credentials. Please check your login info.');
+				}
+			})
+			.catch(error => {
+				console.error('Error submitting form:', error);
+				if (error.response) {
+					console.error('Error response status:', error.response.status);
+					console.error('Error response data:', error.response.data);
+				} else {
+					console.error('Error:', error.message);
+				}
+				alert('Error submitting form. Please try again later.');
+			});
+		}
+    </script>
+</head>
+    <body>
+        <div class="main-div">
+            <div class="sub-div left-div clickable" onclick="window.location.href='/'">
+              <img src="LOGO-bordered.png" alt="Logo" style="width: calc((6vh + 6vw)/2); height: auto;">   
+              <span style="font-size: calc(100% + 0.5vh); font-weight: 900;">ArfID</span>
+            </div>
+            <div class="sub-div middle-div">
+              <span id="headerSpan" style="font-size: calc(100% + 1.5vh);font-weight: 600; margin-right: 9vw"> </span>
+            </div>
+            <div class="sub-div right-div">
+              <img class="clickable" src="gear.png" alt="Gear" style="width: calc(5vh + 1rem); height: auto;" onclick="window.location.href='/settings'"> 
+            </div>
+        </div>
+
+        <div class="container" style="display: flex; justify-content: center; align-items: center;">
+            <span id="tagUID" class="inputSpan" style="font-size: calc((2.5vh + 2.5vw)/2); color: #00beff; margin-bottom: calc((2vh + 2vw)/2);"><strong></strong></span> 
+        </div>
+        <div class="container" style="font-size: calc((2vh + 2vw)/2);">
+            <div style="margin-bottom: calc((1vh + 1vw)/2);">
+                <span id="usernameSpan" class="inputSpan"><strong>Enter User ID</strong><br></span> 
+                <input id="username" type="text" placeholder="Please enter the UID that comes with the product."> 
+			</div>  
+			<div style="margin-bottom: calc((2vh + 2vw)/2);">
+                <span id="usernameSpan" class="inputSpan"><strong>Enter Notification ID</strong><br></span> 
+                <a href="https://pushme.vercel.app/" target="_blank"><span id="usernameSpan" class="inputSpan" style="font-size: calc((1.5vw + 1.5vh)/2)"> Get Notification ID here</span></a>
+                <input id="username" type="text" placeholder="Leave blank for no notifying functions."> 
+			</div>
+			<div style="margin-bottom: calc((2vh + 2vw)/2);">
+                <span id="passwordSpan" class="inputSpan"><strong>Set a password</strong></span> 
+                <input id="password" type="password" placeholder="Please enter the password that comes with the product."> 
+                <input type="checkbox" id="rememberUser"> 
+                <span style="margin-bottom: calc((1vh + 1vw)/2);"> Remember login info</span>
+				<div style="margin-top: calc((2vh + 2vw)/2);">
+				<input type="checkbox" id="tosAgree">
+                <span style="margin-bottom: calc((1vh + 1vw)/2); font-weight: bold"> I agree to the Terms and Service of using ArfID and its products</span>
+				</div>
+			</div>
+            <div>
+                <button id="loginButton" type="submit" class="button" onclick="login()" style="width: 75%; height: auto; margin-top: calc((5vh + 5vw)/2)">Login</button> 
+            </div>
+		</div>
+    </body>
+</html>

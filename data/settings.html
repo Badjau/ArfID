@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon"  type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ArfID</title>
+    <script>
+        //!!CREATE SCRIPT FOR SETTINGS
+    </script>
+    </head>
+    <body>
+        <div class="main-div">
+            <div class="sub-div left-div clickable" onclick="window.location.href='/'">
+            <img src="LOGO-bordered.png" alt="Logo" style="width: calc((6vh + 6vw)/2); height: auto;">   
+            <span style="font-size: calc(100% + 0.5vh); font-weight: 900;">ArfID</span>
+            </div>
+            <div class="sub-div middle-div">
+            <span style="font-size: calc(100% + 1.5vh);font-weight: 600; margin-left: 4vw">Settings</span>
+            </div>
+            <div class="sub-div right-div">
+            <span class="clickable" style="font-size: calc(100% + 0.5vh); font-weight:bold;" onclick="window.location.href='/'">Save -></span> 
+            </div>
+        </div>
+        <div class="main-container">
+            <div class="divider" style="display: block; font-size: calc((2vh + 2vw)/2)">
+                <div style="margin-top: 2% ;margin-bottom: 2%; font-size: 1.2em ;font-weight: bold; text-align: center">
+                    <span> Settings</span>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 1em">
+                    <span id="span1"  style="vertical-align: middle"> Notify when food is dispensed </span>
+                    <label class="toggle-switch">
+                        <input id="checkbox1" type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div style="text-align: center; margin-bottom: 1em; margin-left: 1em">
+                    <span id="span2" style="vertical-align: middle;"> Notify amount dispensed </span>
+                    <label class="toggle-switch">
+                        <input id="checkbox2" type="checkbox"  checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div style="text-align: center; margin-bottom: 1em">
+                    <span id="span3" style="vertical-align: middle"> Notify when food levels are low </span>
+                    <label class="toggle-switch">
+                        <input id="checkbox3" type="checkbox"  checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div style="text-align: center; margin-bottom: 1em">
+                    <span style="vertical-align: middle; color: red; font-size: calc((1.5vh + 1.5vw)/2)" onclick="window.location.href='/delete-data'">! Clear all Data !</span>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script defer>
+        document.addEventListener('DOMContentLoaded', function() { 
+            const checkbox1 = document.getElementById('checkbox1');
+            const checkbox2 = document.getElementById('checkbox2');
+            const checkbox3 = document.getElementById('checkbox3');
+            const span1 = document.getElementById('span1');
+            const span2 = document.getElementById('span2');
+            const span3 = document.getElementById('span3');
+            
+            function updateNotificationColors() {
+                if (checkbox1.checked) {
+                    span1.style.color = 'black'; 
+                } else {
+                    span1.style.color = 'darkgrey'; 
+                } if (checkbox2.checked) {
+                    span2.style.color = 'black'; 
+                } else {
+                    span2.style.color = 'darkgrey'; 
+                } if (checkbox3.checked) {
+                    span3.style.color = 'black'; 
+                } else {
+                    span3.style.color = 'darkgrey'; 
+                }
+            }
+
+            // Call the function once to set initial colors
+            updateNotificationColors();
+
+            // Attach event listener to the checkbox
+            checkbox1.addEventListener('click', updateNotificationColors);
+            checkbox2.addEventListener('click', updateNotificationColors);
+            checkbox3.addEventListener('click', updateNotificationColors);
+            checkbox4.addEventListener('click', updateNotificationColors);
+        });
+    
+    </script>
+</html>

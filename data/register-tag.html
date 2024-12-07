@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon"  type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // Function to update tag UID and button text using AJAX
+        function updateTagUID() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        var tagUID = xhr.responseText;
+                        document.getElementById('tagUID').innerText = tagUID;
+                        isNewTag(tagUID);
+                    } else {
+                        handleError('Error fetching tag UID:', xhr.status);
+                    }
+                }
+            };
+            xhr.open('GET', '/tag', true);
+            xhr.send();
+        }
+
+        function isNewTag(tagUID) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        var newTag = xhr.responseText;
+                        updateNewTagUI(newTag);
+                    } else {
+                        handleError('Error fetching new tag status:', xhr.status);
+                    }
+                }
+            };
+            xhr.open('GET', '/new-tag', true);
+            xhr.send();
+        }
+
+        function updateNewTagUI(newTag) {
+            var newTagElement = document.getElementById('newTag');
+            newTagElement.innerText = newTag;
+
+            var registerButton = document.getElementById('registerButton');
+            var tagFoundElement = document.getElementById('tagFound');
+
+            if (newTag === "Tag UID:") {
+                console.log("Tag Detected!");
+                registerButton.innerText = "Register Pet";
+                registerButton.style.backgroundColor = '#3ABDEA';
+                registerButton.disabled = false;
+                tagFoundElement.innerText = "Tag Detected!";
+            } else {
+                console.log("Waiting for Tag...");
+                registerButton.innerText = "Waiting for Tag...";
+                tagFoundElement.innerText = "Tap the tag on the Scanner";
+                registerButton.style.backgroundColor = '#04AA6D';
+                registerButton.disabled = true;
+            }
+        }
+
+        function handleError(message, status) {
+            console.error(message, status);
+        }
+
+        setInterval(updateTagUID, 500); // Adjust interval based on RFID reader operation
+        
+        //register button
+        function registerPet() {
+            var tagUID = document.getElementById('tagUID').innerText;
+            // Navigate to the register page with tagUID as a query parameter
+            window.location.href = "/register-pet?tagUID=" + encodeURIComponent(tagUID);
+        }
+    </script>
+    <title>ArfID</title>
+
+</head>
+    <body>
+        <div class="main-div">
+            <div class="sub-div left-div clickable" onclick="window.location.href='/'">
+              <img src="LOGO-bordered.png" alt="Logo" style="width: calc((6vh + 6vw)/2); height: auto;">   
+              <span style="font-size: calc(100% + 0.5vh); font-weight: 900;">ArfID</span>
+            </div>
+            <div class="sub-div middle-div">
+              <span style="font-size: calc(100% + 1.5vh);font-weight: 600; margin-right: 9vw">Register Tag</span>
+            </div>
+            <div class="sub-div right-div">
+              <img class="clickable" src="gear.png" alt="Gear" style="width: calc(5vh + 1rem); height: auto;" onclick="window.location.href='/settings'"> 
+            </div>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:center;  min-height:50vh;">
+            <h4 id="tagFound" style="text-align: center;">Tap the tag on the Scanner</h4>
+            <h6 id="newTag" style="text-align: center;"></h6>
+            <h5 id="tagUID" style="text-align: center;"></h5>
+            <div class ="container">
+                <button style="width: 50%" id="registerButton" type="button" onclick="registerPet()">Waiting for Tag...</button>
+            </div>
+        </div>
+    </body>
+</html>
